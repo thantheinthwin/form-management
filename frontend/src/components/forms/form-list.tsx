@@ -32,6 +32,7 @@ export function FormList() {
   const loadForms = async () => {
     try {
       const data = await formsApi.getForms();
+     
       setForms(data);
     } catch (error) {
       toast.error('Failed to load forms');
@@ -42,7 +43,12 @@ export function FormList() {
 
   const handleDelete = async (id: number) => {
     try {
-      await formsApi.deleteForm(id);
+      const response = await fetch(`/api/forms/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete form');
+      }
       setForms(forms.filter((form) => form.id !== id));
       toast.success('Form deleted successfully');
     } catch (error) {

@@ -2,6 +2,26 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
 import type { NextAuthOptions } from "next-auth";
+import { JWT } from "next-auth/jwt";
+
+// Extend the built-in session types
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      role: string;
+      name?: string;
+    };
+    token: string;
+  }
+  interface User {
+    id: string;
+    email: string;
+    role: string;
+    token: string;
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,8 +42,15 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password,
           });
 
-          if (response.data) {
-            return response.data;
+          const { token, role, id, email } = response.data;
+          
+          if (token) {
+            return {
+              id,
+              email,
+              role,
+              token,
+            };
           }
           return null;
         } catch (error) {
@@ -33,16 +60,25 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }: { token: any; user?: any }) {
+    async jwt({ token, user }) {
       if (user) {
+        // First time jwt callback is run, user object is available
         token.id = user.id;
         token.role = user.role;
+        token.token = user.token;
+        token.email = user.email;
       }
       return token;
     },
-    async session({ session, token }: { session: any; token: any }) {
-      session.user.id = token.id;
-      session.user.role = token.role;
+    async session({ session, token }) {
+      if (token) {
+        session.user = {
+          id: token.id as string,
+          email: token.email as string,
+          role: token.role as string,
+        };
+        session.token = token.token as string;
+      }
       return session;
     },
   },
@@ -50,6 +86,10 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  }
 };
 
 const handler = NextAuth(authOptions);

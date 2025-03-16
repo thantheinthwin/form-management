@@ -1,10 +1,10 @@
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_URL + '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,7 +15,7 @@ api.interceptors.request.use(async (config) => {
   const session = await getSession();
   if (session?.user) {
     // Use the JWT token from the session
-    const token = (session as any).token;
+    const token = session.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
