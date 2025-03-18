@@ -6,6 +6,10 @@ interface TokenPayload {
   role?: "admin" | "user";
 }
 
+// Define token lifetimes as constants for consistency
+const ACCESS_TOKEN_LIFETIME = "15M"; // 15 minutes
+const REFRESH_TOKEN_LIFETIME = "7D"; // 7 days
+
 class TokenService {
     private static getSecret(key: string): string {
         const secret = process.env[key];
@@ -23,7 +27,7 @@ class TokenService {
         return this.generateToken(
         { id: user.id, role: user.role },
         "JWT_SECRET",
-        "15M"
+        ACCESS_TOKEN_LIFETIME
         );
     }
 
@@ -31,7 +35,7 @@ class TokenService {
         return this.generateToken(
         { id: user.id },
         "REFRESH_SECRET",
-        "7D"
+        REFRESH_TOKEN_LIFETIME
         );
     }
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getSession } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 
 const api = axios.create({
   baseURL: '/api',
@@ -7,6 +7,26 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Handle authentication errors
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    // Check if it's an authentication error from our API
+    if (error.response?.status === 401 && error.response?.data?.authError) {
+      console.error('Authentication error detected in API response');
+      
+      // Sign out the user and redirect to login page
+      await signOut({ callbackUrl: '/login?error=session_expired' });
+      
+      // Don't retry the request
+      return Promise.reject(error);
+    }
+    
+    // Pass through any other errors
+    return Promise.reject(error);
+  }
+);
 
 // // Add session token to requests
 // api.interceptors.request.use(async (config) => {

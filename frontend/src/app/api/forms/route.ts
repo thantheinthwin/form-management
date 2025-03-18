@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { getSessionWithAuth, handleAuthError } from "@/lib/auth";
 
 const BACKEND_URL = "http://localhost:5000/api";
-
-/**
- * Helper function to get session and validate user authentication.
- */
-async function getSessionWithAuth() {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
-    return null;
-  }
-  return session;
-}
 
 /**
  * Fetch forms from backend
@@ -46,33 +34,47 @@ export async function GET() {
 }
 
 /**
- * Delete a form by ID
+ * Create a new form
  */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request) {
   try {
     const session = await getSessionWithAuth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const response = await fetch(`${BACKEND_URL}/forms/${params.id}`, {
-      method: "DELETE",
+    const formData = await request.json();
+
+    console.debug("Sending form creation request to backend");
+    const response = await fetch(`${BACKEND_URL}/forms`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify(formData),
     });
 
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    // Handle specific status codes
+    if (response.status === 401) {
+      console.error("Authentication failed with backend - Invalid Token");
+      
+      // This will be caught by the client-side and trigger a redirect
+      return NextResponse.json({ 
+        error: "Authentication failed. Please log in again.",
+        authError: true 
+      }, { status: 401 });
     }
 
-    return NextResponse.json({ success: true });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error ${response.status}: ${response.statusText} - ${errorText}`);
+    }
+
+    const createdForm = await response.json();
+    return NextResponse.json(createdForm);
   } catch (error) {
-    console.error("Error deleting form:", error);
-    return NextResponse.json({ error: "Failed to delete form" }, { status: 500 });
+    console.error("Error creating form:", error);
+    return NextResponse.json({ error: "Failed to create form" }, { status: 500 });
   }
 }
