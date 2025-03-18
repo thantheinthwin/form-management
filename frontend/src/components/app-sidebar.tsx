@@ -93,21 +93,6 @@ const adminData = {
         },
       ],
     },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "Account",
-          url: "/settings/account",
-        },
-        {
-          title: "Preferences",
-          url: "/settings/preferences",
-        },
-      ],
-    },
   ],
   projects: [
     {
@@ -150,21 +135,6 @@ const userData = {
         {
           title: "Completed Forms",
           url: "/forms/completed",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings2,
-      items: [
-        {
-          title: "Account",
-          url: "/settings/account",
-        },
-        {
-          title: "Preferences",
-          url: "/settings/preferences",
         },
       ],
     },

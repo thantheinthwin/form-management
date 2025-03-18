@@ -14,10 +14,9 @@ import { usePathname } from 'next/navigation';
 
 interface FormDetailSidebarProps {
   formId: number;
-  formTitle?: string;
 }
 
-export function FormDetailSidebar({ formId, formTitle }: FormDetailSidebarProps) {
+export function FormDetailSidebar({ formId }: FormDetailSidebarProps) {
   const pathname = usePathname();
   
   const isActive = (path: string) => {
@@ -58,9 +57,6 @@ export function FormDetailSidebar({ formId, formTitle }: FormDetailSidebarProps)
           <ChevronLeft className="h-4 w-4 mr-1" />
           Back to Forms
         </Link>
-        <h3 className="text-lg font-medium text-ellipsis overflow-hidden">
-          {formTitle || `Form ID: ${formId}`}
-        </h3>
       </div>
       
       <nav className="space-y-2">

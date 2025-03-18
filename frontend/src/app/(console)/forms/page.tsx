@@ -19,16 +19,16 @@ export default function FormsPage() {
   }, [session, status]);
 
   if (status === 'loading' || loading) {
-    return <div className="container py-6">Loading...</div>;
+    return <div className="container">Loading...</div>;
   }
 
   if (status === 'unauthenticated') {
     // Handle unauthenticated state or redirect
-    return <div className="container py-6">Please log in to view forms</div>;
+    return <div className="container">Please log in to view forms</div>;
   }
 
   return (
-    <div className="container py-6">
+    <div className="container">
       {isAdmin ? <FormList /> : <UserFormList />}
     </div>
   );

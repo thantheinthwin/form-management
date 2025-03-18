@@ -41,7 +41,7 @@ export default function ConsoleLayout({
   return <SidebarProvider>
   <AppSidebar session={data} />
   <SidebarInset>
-    <header className="flex h-16 shrink-0 items-center gap-2">
+    {/* <header className="flex h-16 shrink-0 items-center gap-2">
       <div className="flex items-center gap-2 px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator
@@ -62,15 +62,9 @@ export default function ConsoleLayout({
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-    </header>
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+    </header> */}
+    <div className="flex flex-1 flex-col gap-4 p-4">
         {children}
-      {/* <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-        <div className="bg-muted/50 aspect-video rounded-xl" />
-      </div>
-      <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" /> */}
     </div>
   </SidebarInset>
 </SidebarProvider>

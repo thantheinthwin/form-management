@@ -48,11 +48,13 @@ export function FormDetailView({ formId }: FormDetailsProps) {
       try {
         setLoading(true);
         const data = await formsApi.getForm(formId);
+        console.log('form data', data);
         setFormData(data);
         
         // For this example, let's assume getResponses returns assignees data as well
         // In a real implementation, you might need a separate API call
         const responseData = await formsApi.getResponses(formId);
+        console.log('response data', responseData);
         setAssignees(responseData?.assignees || []);
       } catch (error) {
         toast.error('Failed to load form details');
@@ -87,20 +89,28 @@ export function FormDetailView({ formId }: FormDetailsProps) {
   return (
     <div className="flex h-full">
       {/* Sidebar */}
-      <FormDetailSidebar formId={formId} formTitle={formData.title} />
+      <FormDetailSidebar formId={formId} />
 
       {/* Main content */}
       <div className="flex-1 p-6">
         <div className="space-y-6">
           {/* Form Fields Card */}
           <Card className="shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
-              <CardTitle className="text-xl">Form Configuration</CardTitle>
-              <Button variant="ghost" size="icon">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className='flex justify-between w-full'>
+                <div className='grid gap-4'>
+                <h1 className="text-2xl font-bold">{formData.title}</h1>
+                <p className="text-sm text-muted-foreground">{formData.description}</p>
+                </div>
+                <div>
+                  <h2 className='text-sm text-muted-foreground'>Created at: {new Date(formData.createdAt).toLocaleDateString('en-GB')}</h2>
+                </div>
+              </CardTitle>
+              {/* <Button variant="ghost" size="icon">
                 <MoreHorizontal className="h-5 w-5" />
-              </Button>
+              </Button> */}
             </CardHeader>
-            <CardContent className="p-4">
+            <CardContent>
               <div className="space-y-3">
                 {formData.questions && formData.questions.map((field: FormField) => (
                   <div key={field.id} className="flex justify-between border-b pb-3">
@@ -139,8 +149,8 @@ export function FormDetailView({ formId }: FormDetailsProps) {
             <CardContent className="p-4">
               <div className="space-y-3">
                 {assignees.length > 0 ? (
-                  assignees.map((assignee) => (
-                    <div key={assignee.id} className="flex justify-between items-center border-b pb-3">
+                  assignees.map((assignee, index) => (
+                    <div key={index} className="flex justify-between items-center border-b pb-3">
                       <div className="flex items-center space-x-2">
                         <UserCircle className="h-5 w-5 text-muted-foreground" />
                         <span className="font-medium">{assignee.name}</span>

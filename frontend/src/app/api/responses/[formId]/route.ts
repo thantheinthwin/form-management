@@ -63,12 +63,12 @@ export async function GET(
 
     // For development/testing, use mock data if backend is not available
     // Remove or comment this section in production
-    try {
-      const mockData = mockAssigneesData[params.formId as keyof typeof mockAssigneesData] || { assignees: [] };
-      return NextResponse.json(mockData);
-    } catch (mockError) {
-      console.log("Using real backend API");
-    }
+    // try {
+    //   const mockData = mockAssigneesData[params.formId as keyof typeof mockAssigneesData] || { assignees: [] };
+    //   return NextResponse.json(mockData);
+    // } catch (mockError) {
+    //   console.log("Using real backend API");
+    // }
 
     const response = await fetch(`${BACKEND_URL}/responses/${params.formId}`, {
       headers: {

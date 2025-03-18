@@ -86,17 +86,6 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // For development/testing, use mock data if backend is not available
-    // Remove or comment this section in production
-    try {
-      const mockData = mockFormsData[params.id as keyof typeof mockFormsData];
-      if (mockData) {
-        return NextResponse.json(mockData);
-      }
-    } catch (mockError) {
-      console.log("Using real backend API");
-    }
-
     const response = await fetch(`${BACKEND_URL}/forms/${params.id}`, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
