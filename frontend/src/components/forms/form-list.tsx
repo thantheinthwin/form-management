@@ -60,6 +60,8 @@ export function FormList() {
     return <div>Loading...</div>;
   }
 
+  console.log("forms", forms)
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

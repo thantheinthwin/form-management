@@ -65,10 +65,12 @@ router.post("/refresh", async (req: Request, res: Response) => {
     }
 
     const user = rows[0] as User;
-    const newAccessToken = TokenService.generateRefreshToken(user);
+    const newAccessToken = TokenService.generateAccessToken(user);
 
+    console.log(`Generated new access token for user ${user.id}`);
     res.json({ accessToken: newAccessToken });
-  } catch {
+  } catch (error) {
+    console.error("Refresh token error:", error);
     res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 })
