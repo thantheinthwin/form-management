@@ -15,7 +15,7 @@ declare module "next-auth" {
     user: {
       id: string;
       email: string;
-      role: string;
+      role: 'admin' | 'user';
       name?: string;
     };
     accessToken: string;
@@ -25,7 +25,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     email: string;
-    role: string;
+    role: 'admin' | 'user';
     accessToken: string;
     refreshToken: string;
   }
@@ -105,7 +105,7 @@ export const authOptions: NextAuthOptions = {
         session.user = {
           id: token.id as string,
           email: token.email as string,
-          role: token.role as string,
+          role: token.role as 'admin' | 'user',
         };
         session.accessToken = token.accessToken as string;
         session.refreshToken = token.refreshToken as string;

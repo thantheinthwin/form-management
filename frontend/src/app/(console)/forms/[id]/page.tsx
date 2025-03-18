@@ -5,12 +5,14 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { formsApi } from '@/lib/api/forms';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 
 export default function FormSubmissionPage() {
   const params = useParams();
   const formId = Number(params.id);
   const [formData, setFormData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const loadForm = async () => {
@@ -62,7 +64,7 @@ export default function FormSubmissionPage() {
 
   return (
     <div className="container py-6">
-      <FormView formData={formData} onSubmit={handleSubmit} />
+      <FormView formData={formData} onSubmit={handleSubmit} userRole={session?.user?.role || 'user'} />
     </div>
   );
 } 

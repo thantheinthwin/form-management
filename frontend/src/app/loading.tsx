@@ -1,8 +1,11 @@
 "use client"
 
 import React from 'react'
-import Lottie from 'react-lottie'
+import dynamic from 'next/dynamic'
 import loadingAnimation from '../../public/lottie/loading.json'
+
+// Dynamically import Lottie with SSR disabled to prevent "document is not defined" error
+const Lottie = dynamic(() => import('react-lottie'), { ssr: false })
 
 export default function Loading() {
   const defaultOptions = {
