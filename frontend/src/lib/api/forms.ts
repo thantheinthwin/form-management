@@ -26,7 +26,7 @@ export interface CreateFormData {
   description?: string;
   questions: {
     text: string;
-    type: 'text' | 'multiple_choice' | 'checkbox';
+    type: 'text' | 'multiple_choice' | 'checkbox' | 'yes_no';
     options?: string[];
     required: boolean;
     order: number;
