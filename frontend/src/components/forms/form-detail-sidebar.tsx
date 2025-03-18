@@ -42,12 +42,12 @@ export function FormDetailSidebar({ formId }: FormDetailSidebarProps) {
       icon: BarChart,
       active: pathname.includes('/responses')
     },
-    {
-      label: 'Export Data',
-      href: `/forms/${formId}/report`,
-      icon: Download,
-      active: pathname.includes('/report')
-    },
+    // {
+    //   label: 'Export Data',
+    //   href: `/forms/${formId}/report`,
+    //   icon: Download,
+    //   active: pathname.includes('/report')
+    // },
   ];
 
   return (

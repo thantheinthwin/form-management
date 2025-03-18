@@ -53,14 +53,6 @@ const adminData = {
           title: "Create Form",
           url: "/forms/create",
         },
-        {
-          title: "Assigned Forms",
-          url: "/forms/assigned",
-        },
-        {
-          title: "Completed Forms",
-          url: "/forms/completed",
-        },
       ],
     },
     {
