@@ -1,27 +1,25 @@
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-
 const api = axios.create({
-  baseURL: API_URL + '/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add session token to requests
-api.interceptors.request.use(async (config) => {
-  const session = await getSession();
-  if (session?.user) {
-    // Use the JWT token from the session
-    const token = session.token;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
+// // Add session token to requests
+// api.interceptors.request.use(async (config) => {
+//   const session = await getSession();
+//   if (session?.user) {
+//     // Use the JWT token from the session
+//     const token = session.token;
+//     if (token) {
+//       config.headers.Authorization = `Bearer ${token}`;
+//     }
+//   }
+//   return config;
+// });
 
 export interface CreateFormData {
   title: string;

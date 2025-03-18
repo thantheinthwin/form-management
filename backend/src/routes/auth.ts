@@ -5,6 +5,7 @@ import pool from "../config/db";
 import dotenv from "dotenv";
 import { Request, Response } from "express";
 import type {StringValue} from 'ms';
+import TokenService from "../utils/generateToken";
 
 dotenv.config();
 const router = express.Router();
@@ -15,6 +16,7 @@ interface User {
   password: string;
   role: "admin" | "user";
 }
+
 
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -35,25 +37,50 @@ router.post("/login", async (req: Request, res: Response) => {
     res.status(401).json({ message: "Invalid credentials" });
     return;
   }
+  
+  const accessToken = TokenService.generateAccessToken(user)
+  const refreshToken = TokenService.generateRefreshToken(user)
 
-  // Fixed JWT signing with proper types
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    res.status(500).json({ message: "Server configuration error" });
+  await pool.query("UPDATE users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id])
+
+  res.json({ accessToken, refreshToken, id: user.id, email: user.email, role: user.role });
+});
+
+router.post("/refresh", async (req: Request, res: Response) => {
+  const {refreshToken} = req.body;
+
+  if(!refreshToken){
+    res.status(403).json({message: "Refresh token required."})
     return;
   }
 
-  const signOptions: SignOptions = {
-    expiresIn: process.env.JWT_EXPIRATION as StringValue || "1H"
-  };
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET!) as { id: number };
 
-  const token = jwt.sign(
-    { id: user.id, role: user.role },
-    secret,
-    signOptions
-  );
+    const [rows] = await pool.query("SELECT * FROM users WHERE id = ? AND refresh_token = ?", [decoded.id, refreshToken]);
 
-  res.json({ token, role: user.role });
+    if (!Array.isArray(rows) || rows.length === 0) {
+      res.status(403).json({ message: "Invalid refresh token" });
+      return;
+    }
+
+    const user = rows[0] as User;
+    const newAccessToken = TokenService.generateRefreshToken(user);
+
+    res.json({ accessToken: newAccessToken });
+  } catch {
+    res.status(403).json({ message: "Invalid or expired refresh token" });
+  }
+})
+
+// ✅ Fix async function return type
+router.post("/logout", async (req: Request, res: Response) => {
+  const { refreshToken } = req.body;
+
+  await pool.query("UPDATE users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
+
+  res.json({ message: "Logged out successfully" });
+  return;
 });
 
 export default router;

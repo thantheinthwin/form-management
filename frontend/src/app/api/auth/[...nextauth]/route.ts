@@ -13,13 +13,15 @@ declare module "next-auth" {
       role: string;
       name?: string;
     };
-    token: string;
+    accessToken: string;
+    refreshToken: string;
   }
   interface User {
     id: string;
     email: string;
     role: string;
-    token: string;
+    accessToken: string;
+    refreshToken: string;
   }
 }
 
@@ -42,14 +44,15 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password,
           });
 
-          const { token, role, id, email } = response.data;
+          const { accessToken, refreshToken, role, id, email } = response.data;
           
-          if (token) {
+          if (accessToken) {
             return {
               id,
               email,
               role,
-              token,
+              accessToken,
+              refreshToken,
             };
           }
           return null;
@@ -62,13 +65,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // First time jwt callback is run, user object is available
         token.id = user.id;
         token.role = user.role;
-        token.token = user.token;
-        token.email = user.email;
+        token.accessToken = user.accessToken;
+        token.refreshToken = user.refreshToken;
+        token.accessTokenExpires = Date.now() + 15 * 60 * 1000; // 15 min expiry
       }
-      return token;
+
+      // If access token is still valid, return token
+      if (Date.now() < token.accessTokenExpires) {
+        return token;
+      }
+
+      // Otherwise, refresh the access token
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
       if (token) {
@@ -77,9 +87,23 @@ export const authOptions: NextAuthOptions = {
           email: token.email as string,
           role: token.role as string,
         };
-        session.token = token.token as string;
+        session.accessToken = token.accessToken as string;
+        session.refreshToken = token.refreshToken as string;
       }
       return session;
+    },
+  },
+  events: {
+    async signOut({ token }) {
+      if (token.refreshToken) {
+        try {
+          await axios.post("http://localhost:5000/auth/logout", {
+            refreshToken: token.refreshToken,
+          });
+        } catch (error) {
+          console.error("Failed to call /logout", error);
+        }
+      }
     },
   },
   pages: {
@@ -94,3 +118,23 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+
+// 🔹 Function to Refresh Access Token
+async function refreshAccessToken(token: any) {
+  try {
+    const response = await axios.post("http://localhost:5000/auth/refresh", {
+      refreshToken: token.refreshToken,
+    });
+
+    const refreshedTokens = response.data;
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.accessToken,
+      accessTokenExpires: Date.now() + 15 * 60 * 1000, // Set new expiry
+    };
+  } catch (error) {
+    console.error("Failed to refresh access token", error);
+    return { ...token, error: "RefreshTokenExpired" };
+  }
+}

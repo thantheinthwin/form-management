@@ -33,10 +33,6 @@ export default function ConsoleLayout({
     }
   }, [status, router])
 
-  if (status === 'loading') {
-    return <div>Loading...</div>
-  }
-
   return <SidebarProvider>
   <AppSidebar />
   <SidebarInset>
