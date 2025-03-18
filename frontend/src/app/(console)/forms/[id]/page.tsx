@@ -1,46 +1,68 @@
+'use client';
+
 import { FormView } from '@/components/forms/form-view';
+import { useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { formsApi } from '@/lib/api/forms';
+import { toast } from 'sonner';
 
-// This would normally fetch the form data from your API
-const mockFormData = {
-  id: 1,
-  title: 'Sample Form',
-  description: 'This is a sample form description.',
-  questions: [
-    {
-      id: 1,
-      text: 'What is your name?',
-      type: 'text' as const,
-      required: true,
-      order: 0,
-    },
-    {
-      id: 2,
-      text: 'Which programming languages do you know?',
-      type: 'checkbox' as const,
-      options: ['JavaScript', 'Python', 'Java', 'C++', 'Ruby'],
-      required: true,
-      order: 1,
-    },
-    {
-      id: 3,
-      text: 'What is your preferred development environment?',
-      type: 'multiple_choice' as const,
-      options: ['VS Code', 'IntelliJ', 'Sublime Text', 'Vim'],
-      required: false,
-      order: 2,
-    },
-  ],
-};
+export default function FormSubmissionPage() {
+  const params = useParams();
+  const formId = Number(params.id);
+  const [formData, setFormData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-export default function FormPage() {
+  useEffect(() => {
+    const loadForm = async () => {
+      try {
+        setLoading(true);
+        const data = await formsApi.getForm(formId);
+        setFormData(data);
+      } catch (error) {
+        toast.error('Failed to load form');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadForm();
+  }, [formId]);
+
   const handleSubmit = async (data: any) => {
-    // This would normally send the data to your API
-    console.log('Form submitted:', data);
+    try {
+      toast.loading('Submitting your responses...');
+      
+      // Transform the data into the expected format
+      const responses = Object.entries(data).map(([key, value]) => {
+        const questionId = Number(key.replace('question_', ''));
+        return {
+          questionId,
+          answer: Array.isArray(value) ? value.join(',') : String(value)
+        };
+      });
+      
+      await formsApi.submitResponse(formId, responses);
+      toast.dismiss();
+      toast.success('Form submitted successfully');
+    } catch (error) {
+      toast.dismiss();
+      toast.error('Failed to submit form');
+      console.error(error);
+    }
   };
+
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  if (!formData) {
+    return <div className="p-6">Form not found</div>;
+  }
 
   return (
     <div className="container py-6">
-      <FormView formData={mockFormData} onSubmit={handleSubmit} />
+      <FormView formData={formData} onSubmit={handleSubmit} />
     </div>
   );
 } 

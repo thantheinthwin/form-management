@@ -18,13 +18,14 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import Loading from '../loading'
 
 export default function ConsoleLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { status } = useSession()
+  const { status, data } = useSession()
   const router = useRouter()
 
   useEffect(() => {
@@ -33,8 +34,12 @@ export default function ConsoleLayout({
     }
   }, [status, router])
 
+  if (status === 'loading') {
+    return <Loading/>
+  }
+
   return <SidebarProvider>
-  <AppSidebar />
+  <AppSidebar session={data} />
   <SidebarInset>
     <header className="flex h-16 shrink-0 items-center gap-2">
       <div className="flex items-center gap-2 px-4">

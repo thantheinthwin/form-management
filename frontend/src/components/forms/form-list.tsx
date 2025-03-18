@@ -60,8 +60,6 @@ export function FormList() {
     return <div>Loading...</div>;
   }
 
-  console.log("forms", forms)
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -90,7 +88,7 @@ export function FormList() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem>
-                      <Link href={`/forms/${form.id}`} className="flex items-center w-full">
+                      <Link href={`/forms/${form.id}/details`} className="flex items-center w-full">
                         <FileText className="mr-2 h-4 w-4" />
                         View Details
                       </Link>
@@ -105,6 +103,12 @@ export function FormList() {
                       <Link href={`/forms/${form.id}/report`} className="flex items-center w-full">
                         <Download className="mr-2 h-4 w-4" />
                         Download Report
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link href={`/forms/${form.id}`} className="flex items-center w-full">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Preview Form
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem

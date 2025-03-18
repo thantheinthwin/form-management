@@ -61,6 +61,7 @@ export interface Form {
   totalAssignments: number;
   completedAssignments: number;
   createdAt: string;
+  status?: 'pending' | 'completed';
 }
 
 export interface FormResponse {
@@ -71,6 +72,8 @@ export interface FormResponse {
 export const formsApi = {
   // Forms
   getForms: () => api.get<Form[]>('/forms').then((res) => res.data),
+  
+  getAssignedForms: () => api.get<Form[]>('/forms/assigned').then((res) => res.data),
   
   getForm: (id: number) => api.get(`/forms/${id}`).then((res) => res.data),
   
