@@ -16,10 +16,10 @@ A full-stack web application that allows administrators to create, manage, and a
 - View submission confirmations
 
 ## Tech Stack
-- **Frontend**: React with Tailwind CSS
+- **Frontend**: NextJs with Tailwind CSS, Shadcn
 - **Backend**: Node.js with Express.js
 - **Database**: MySQL
-- **Authentication**: JWT-based
+- **Authentication**: JWT-based, NextAuth
 
 ## Setup Instructions
 
@@ -81,7 +81,7 @@ A full-stack web application that allows administrators to create, manage, and a
 - Password: user123
 
 ## Project Structure
-- `frontend/` - React application
+- `frontend/` - NextJs application
 - `backend/` - Express.js API
 - `infra/` - Infrastructure configuration (Docker)
 
