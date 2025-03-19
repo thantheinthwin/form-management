@@ -17,7 +17,6 @@ interface Form {
 }
 
 // POST /api/forms - Create a new form (admin only)
-// verifyToken middleware is already applied in server.ts
 router.post("/", isAdmin, async (req: Request, res: Response) => {
   try {
     const { title, description, questions } = req.body;
@@ -59,8 +58,34 @@ router.post("/", isAdmin, async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/forms/:id - Update a form by ID (admin only)
+router.put("/:id", isAdmin, async (req: Request, res: Response) => {
+  try {
+    const formId = req.params.id;
+    const { title, description, questions } = req.body; 
+
+    // Check if form exists
+    const [formCheck] = await pool.query("SELECT id FROM forms WHERE id = ?", [formId]);
+    
+    if (!Array.isArray(formCheck) || formCheck.length === 0) {
+      res.status(404).json({ message: "Form not found" });
+      return; 
+    }
+
+    // Update the form
+    await pool.query(
+      "UPDATE forms SET title = ?, description = ?, questions = ? WHERE id = ?",
+      [title, description, JSON.stringify(questions), formId]
+    );
+
+    res.status(200).json({ message: "Form updated successfully" });
+  } catch (error) {
+    console.error("Error updating form:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 // GET /api/forms - Get all forms
-// No need for verifyToken middleware as it's already applied in server.ts
 router.get("/", async (req: Request, res: Response) => {
   try {
     // Query that joins forms with assignments to get the required counts

@@ -12,7 +12,8 @@ import {
   MoreHorizontal, 
   UserCircle,
   CheckCircle,
-  Clock 
+  Clock, 
+  Pencil
 } from 'lucide-react';
 import { formsApi } from '@/lib/api/forms';
 import { toast } from 'sonner';
@@ -100,13 +101,21 @@ export function FormDetailView({ formId }: FormDetailsProps) {
                 <h1 className="text-2xl font-bold">{formData.title}</h1>
                 <p className="text-sm text-muted-foreground">{formData.description}</p>
                 </div>
-                <div>
+                <div className='grid gap-2 justify-items-end'>
                   <h2 className='text-sm text-muted-foreground'>Created at: {new Date(formData.createdAt).toLocaleDateString('en-GB')}</h2>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => {
+                      router.push(`/forms/${formId}/edit`);
+                    }}
+                    className="ml-4"
+                  >
+                    <Pencil className='h-4 w-4' />
+                  </Button>
                 </div>
               </CardTitle>
-              {/* <Button variant="ghost" size="icon">
-                <MoreHorizontal className="h-5 w-5" />
-              </Button> */}
+              
             </CardHeader>
             <CardContent>
               <div className="space-y-3">

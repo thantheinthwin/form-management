@@ -1,9 +1,9 @@
-import { CreateForm } from '@/components/forms/create-form';
+import { UpsertForm } from '@/components/forms/upsert-form';
 
 export default function CreateFormPage() {
   return (
     <div className="container py-6">
-      <CreateForm />
+      <UpsertForm />
     </div>
   );
 } 

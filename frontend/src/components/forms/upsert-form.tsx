@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,6 +61,7 @@ const questionSchema = z.object({
     }),
   required: z.boolean().default(true),
   order: z.number(),
+  id: z.number().optional(),
 });
 
 const formSchema = z.object({
@@ -71,14 +72,20 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function CreateForm() {
-  const [questions, setQuestions] = useState<any[]>([]);
+interface UpsertFormProps {
+  formId?: number;
+  initialData?: FormValues;
+}
+
+export function UpsertForm({ formId, initialData }: UpsertFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(!!formId && !initialData);
   const router = useRouter();
+  const isEditing = !!formId;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       title: '',
       description: '',
       questions: [],
@@ -89,6 +96,25 @@ export function CreateForm() {
     control: form.control,
     name: "questions"
   });
+
+  useEffect(() => {
+    const loadForm = async () => {
+      if (formId && !initialData) {
+        try {
+          setIsLoading(true);
+          const data = await formsApi.getForm(formId);
+          form.reset(data);
+        } catch (error) {
+          toast.error('Failed to load form');
+          console.error(error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadForm();
+  }, [formId, initialData, form]);
 
   const addQuestion = () => {
     append({
@@ -132,19 +158,28 @@ export function CreateForm() {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     try {
-      await formsApi.createForm(data);
-      toast.success('Form created successfully');
+      if (isEditing) {
+        await formsApi.updateForm(formId, data);
+        toast.success('Form updated successfully');
+      } else {
+        await formsApi.createForm(data);
+        toast.success('Form created successfully');
+      }
       router.push('/forms');
     } catch (error) {
-      toast.error('Failed to create form');
+      toast.error(`Failed to ${isEditing ? 'update' : 'create'} form`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-40">Loading...</div>;
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Create New Form</h1>
+      <h1 className="text-2xl font-bold mb-6">{isEditing ? 'Edit Form' : 'Create New Form'}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -312,7 +347,7 @@ export function CreateForm() {
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Form...' : 'Create Form'}
+            {isSubmitting ? (isEditing ? 'Updating Form...' : 'Creating Form...') : (isEditing ? 'Update Form' : 'Create Form')}
           </Button>
         </form>
       </Form>

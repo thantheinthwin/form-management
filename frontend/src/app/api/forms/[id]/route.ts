@@ -172,3 +172,36 @@ export async function DELETE(
       return NextResponse.json({ error: "Failed to delete form" }, { status: 500 });
     }
   }
+
+  export async function PUT(
+    request: Request,
+    { params }: { params: { id: string } }
+  ) {
+    try {
+      const session = await getSessionWithAuth();
+      if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const { title, description, questions } = await request.json();
+
+      const response = await fetch(`${BACKEND_URL}/forms/${params.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title, description, questions }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      return NextResponse.json(result);
+    } catch (error) {
+      console.error("Error updating form:", error);
+      return NextResponse.json({ error: "Failed to update form" }, { status: 500 });
+    }
+  }

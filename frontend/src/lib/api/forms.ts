@@ -79,6 +79,9 @@ export const formsApi = {
   
   createForm: (data: CreateFormData) =>
     api.post('/forms', data).then((res) => res.data),
+
+  updateForm: (id: number, data: CreateFormData) =>
+    api.put(`/forms/${id}`, data).then((res) => res.data),
   
   deleteForm: (id: number) => api.delete(`/forms/${id}`),
 
