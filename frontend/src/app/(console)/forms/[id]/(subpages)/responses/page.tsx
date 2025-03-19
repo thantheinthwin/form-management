@@ -23,10 +23,11 @@ import {
   DialogTitle, 
   DialogTrigger
 } from '@/components/ui/dialog';
-import { Loader2, Eye, UserPlus, ChevronRight } from 'lucide-react';
+import { Loader2, Eye, UserPlus, ChevronRight, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { UserAssignmentDialog } from '@/components/forms/user-assignment-dialog';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
 
 interface UserResponse {
   assignment_id: number;
@@ -35,6 +36,15 @@ interface UserResponse {
   status: 'pending' | 'completed';
   submitted_at: string | null;
   response_data: any | null;
+  questions?: Question[];
+}
+
+interface Question {
+  text: string;
+  type: string;
+  order: number;
+  options: string[];
+  required: boolean;
 }
 
 export default function FormResponsesPage() {
@@ -46,6 +56,8 @@ export default function FormResponsesPage() {
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState<UserResponse | null>(null);
   const [showResponseDialog, setShowResponseDialog] = useState(false);
+
+  console.log("selectedResponse", selectedResponse);
 
   useEffect(() => {
     // Fetch form details
@@ -186,16 +198,30 @@ export default function FormResponsesPage() {
       <Dialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Response Details</DialogTitle>
-            <DialogDescription>
-              Submitted by {selectedResponse?.email || 'Unknown User'}
-              {selectedResponse?.submitted_at && ` on ${format(new Date(selectedResponse.submitted_at), 'PPP p')}`}
-            </DialogDescription>
+            <div className="flex justify-between items-center">
+              <div className='flex flex-col gap-2'>
+                <DialogTitle>Response Details</DialogTitle>
+                <DialogDescription>
+                  Submitted by {selectedResponse?.email || 'Unknown User'}
+                  {selectedResponse?.submitted_at && ` on ${format(new Date(selectedResponse.submitted_at), 'PPP p')}`}
+                </DialogDescription>
+              </div>
+              {selectedResponse && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportResponseToCSV(selectedResponse, formId, formTitle)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
+            </div>
           </DialogHeader>
           
-          {selectedResponse?.response_data ? (
+          {selectedResponse ? (
             <div className="max-h-[calc(80vh-200px)] overflow-y-auto">
-              <ResponseDisplay data={selectedResponse.response_data} />
+              <ResponseDisplay data={selectedResponse} />
             </div>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
@@ -302,31 +328,100 @@ function ResponseTable({
 function ResponseDisplay({ data }: { data: any }) {
   if (!data) return null;
   
-  const answers = typeof data === 'string' ? JSON.parse(data) : data;
+  // Check if data contains both response_data and questions
+  const answers = Array.isArray(data.response_data) ? data.response_data : [];
+  const questions = Array.isArray(data.questions) ? data.questions : [];
   
+  // Match answers with questions
   return (
     <div className="space-y-4">
-      {Object.entries(answers).map(([questionId, answer], index) => (
-        <div key={questionId} className="border p-4 rounded-md">
-          <div className="font-medium mb-1">Question {index + 1}</div>
-          <div className="text-sm text-muted-foreground mb-2">{questionId}</div>
-          <div className="mt-2">
-            {typeof answer === 'string' ? (
-              <p>{answer}</p>
-            ) : Array.isArray(answer) ? (
-              <ul className="list-disc pl-5">
-                {answer.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            ) : (
-              <pre className="bg-muted p-2 rounded text-sm overflow-x-auto">
-                {JSON.stringify(answer, null, 2)}
-              </pre>
-            )}
+      {answers.map((answer: any) => {
+        const question = questions.find((q: Question) => q.order === answer.questionId);
+        return (
+          <div key={answer.questionId} className="border p-4 rounded-md grid gap-2">
+            <div className='flex justify-between'>
+              <div>
+                <h3 className='text-sm text-muted-foreground'>Question</h3>
+                <div className="font-medium mb-1">{question?.text || `Question ${answer.questionId}`}</div>
+              </div>
+              <div className="text-sm text-muted-foreground mb-2">Type: {question?.type || 'Unknown'}</div>
+            </div>
+            <Separator />
+            <div>
+              <h3 className='text-sm text-muted-foreground'>Answer</h3>
+              <div className="mt-2">
+                {typeof answer.answer === 'string' ? (
+                  <p>{answer.answer}</p>
+                ) : Array.isArray(answer.answer) ? (
+                  <ul className="list-disc pl-5">
+                    {answer.answer.map((item: any, i: number) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <pre className="bg-muted p-2 rounded text-sm overflow-x-auto">
+                    {JSON.stringify(answer.answer, null, 2)}
+                  </pre>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
+}
+
+// Helper function to export response to CSV
+function exportResponseToCSV(response: UserResponse, formId: number, formTitle: string) {
+  if (!response.response_data || !response.questions) return;
+  
+  try {
+    const answers = Array.isArray(response.response_data) ? response.response_data : [];
+    const questions = Array.isArray(response.questions) ? response.questions : [];
+    
+    // Create CSV content
+    let csvContent = "Question,Type,Answer\n";
+    
+    for (const answer of answers) {
+      const question = questions.find((q: Question) => q.order === answer.questionId);
+      if (!question) continue;
+      
+      let answerText = '';
+      
+      if (typeof answer.answer === 'string') {
+        answerText = answer.answer;
+      } else if (Array.isArray(answer.answer)) {
+        answerText = answer.answer.join(', ');
+      } else {
+        answerText = JSON.stringify(answer.answer);
+      }
+      
+      // Escape quotes in fields
+      const questionText = question.text.replace(/"/g, '""');
+      const questionType = question.type.replace(/"/g, '""');
+      answerText = answerText.replace(/"/g, '""');
+      
+      // Add the row with proper CSV escaping
+      csvContent += `"${questionText}","${questionType}","${answerText}"\n`;
+    }
+    
+    // Create a download link and trigger click
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    
+    // Sanitize form title for filename (replace spaces and special characters)
+    const sanitizedFormTitle = formTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.setAttribute('download', `${sanitizedFormTitle}-${response.user_id}.csv`);
+    
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error('Error exporting response to CSV:', error);
+    alert('Failed to export response to CSV');
+  }
 } 

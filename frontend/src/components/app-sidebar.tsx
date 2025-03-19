@@ -37,46 +37,6 @@ const adminData = {
       title: "Forms",
       url: "/forms",
       icon: FileText,
-      items: [
-        {
-          title: "All Forms",
-          url: "/forms",
-        },
-        {
-          title: "Create Form",
-          url: "/forms/create",
-        },
-      ],
-    },
-    {
-      title: "User Management",
-      url: "/users",
-      icon: Users,
-      items: [
-        {
-          title: "All Users",
-          url: "/users",
-        },
-        {
-          title: "Add User",
-          url: "/users/add",
-        },
-      ],
-    },
-    {
-      title: "Reports",
-      url: "/reports",
-      icon: PieChart,
-      items: [
-        {
-          title: "Form Status",
-          url: "/reports/status",
-        },
-        {
-          title: "Download Reports",
-          url: "/reports/download",
-        },
-      ],
     },
   ],
 }

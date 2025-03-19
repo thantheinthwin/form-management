@@ -94,15 +94,9 @@ export function FormList() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Link href={`/forms/${form.id}/assign`} className="flex items-center w-full">
+                      <Link href={`/forms/${form.id}/responses`} className="flex items-center w-full">
                         <Users className="mr-2 h-4 w-4" />
                         Assign Users
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link href={`/forms/${form.id}/report`} className="flex items-center w-full">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Report
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>

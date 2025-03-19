@@ -332,10 +332,12 @@ router.get("/:id/responses", isAdmin, async (req: Request, res: Response) => {
         u.email,
         ufa.status,
         r.submitted_at,
-        r.answers as response_data
+        r.answers as response_data,
+        f.questions
       FROM user_form_assignments ufa
       LEFT JOIN users u ON ufa.user_id = u.id
       LEFT JOIN responses r ON ufa.user_id = r.user_id AND ufa.form_id = r.form_id
+      LEFT JOIN forms f ON ufa.form_id = f.id
       WHERE ufa.form_id = ?
       ORDER BY r.submitted_at DESC`,
       [formId]
