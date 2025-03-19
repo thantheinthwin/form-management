@@ -6,7 +6,7 @@ const BACKEND_URL = "http://localhost:5000/api";
 /**
  * Fetch forms assigned to the current user from backend
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getSessionWithAuth();
 
@@ -14,10 +14,17 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Since we don't have a backend route yet for assigned forms, we'll fetch all forms 
-    // and filter them on the frontend based on the assigned user
-    // In a real implementation, this should be done by the backend
-    const response = await fetch(`${BACKEND_URL}/forms/assigned`, {
+    // Get status filter from query params if present
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status');
+    
+    // Build endpoint URL with optional status parameter
+    let endpointUrl = `${BACKEND_URL}/assigned/${session.user.id}`;
+    if (status && (status === 'pending' || status === 'completed')) {
+      endpointUrl += `?status=${status}`;
+    }
+
+    const response = await fetch(endpointUrl, {
       headers: {
         Authorization: `Bearer ${session.accessToken}`,
         "Content-Type": "application/json",

@@ -31,23 +31,11 @@ export function FormDetailSidebar({ formId }: FormDetailSidebarProps) {
       active: pathname === `/forms/${formId}/details`
     },
     {
-      label: 'Manage Assignees',
-      href: `/forms/${formId}/assign`,
-      icon: Users,
-      active: pathname.includes('/assign')
-    },
-    {
       label: 'View Responses',
       href: `/forms/${formId}/responses`,
       icon: BarChart,
       active: pathname.includes('/responses')
     },
-    // {
-    //   label: 'Export Data',
-    //   href: `/forms/${formId}/report`,
-    //   icon: Download,
-    //   active: pathname.includes('/report')
-    // },
   ];
 
   return (

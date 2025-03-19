@@ -48,7 +48,7 @@ export function LoginForm({
       console.error("Login failed:", result.error);
       alert("Invalid credentials, please try again.");
     } else {
-      router.push("/dashboard"); // Redirect to dashboard on success
+      router.push("/forms"); // Redirect to dashboard on success
     }
   };
 

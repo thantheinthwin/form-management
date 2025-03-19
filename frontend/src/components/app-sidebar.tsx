@@ -34,13 +34,6 @@ import {
 const adminData = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: Home,
-      isActive: true,
-      items: [],
-    },
-    {
       title: "Forms",
       url: "/forms",
       icon: FileText,
@@ -86,61 +79,15 @@ const adminData = {
       ],
     },
   ],
-  projects: [
-    {
-      name: "Form Assignments",
-      url: "/forms/assigned",
-      icon: ClipboardList,
-    },
-    {
-      name: "Form Submissions",
-      url: "/forms/submissions",
-      icon: CheckSquare,
-    },
-    {
-      name: "Report Downloads",
-      url: "/reports/download",
-      icon: Download,
-    },
-  ],
 }
 
 // User navigation data
 const userData = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: Home,
-      isActive: true,
-      items: [],
-    },
-    {
       title: "My Forms",
-      url: "/forms/assigned",
+      url: "/forms",
       icon: FileText,
-      items: [
-        {
-          title: "Assigned to Me",
-          url: "/forms/assigned",
-        },
-        {
-          title: "Completed Forms",
-          url: "/forms/completed",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "My Assignments",
-      url: "/forms/assigned",
-      icon: ClipboardList,
-    },
-    {
-      name: "My Submissions",
-      url: "/forms/completed",
-      icon: CheckSquare,
     },
   ],
 }
@@ -170,7 +117,6 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
   
   // Select appropriate navigation based on user role
   const navItems = isAdmin ? adminData.navMain : userData.navMain
-  const projectItems = isAdmin ? adminData.projects : userData.projects
   
   // Get user data from session
   const user = {
@@ -185,7 +131,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard">
+              <a href="/forms">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <FileText className="size-4" />
                 </div>
@@ -202,7 +148,6 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
-        <NavProjects projects={projectItems} />
         <NavSecondary items={commonData.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

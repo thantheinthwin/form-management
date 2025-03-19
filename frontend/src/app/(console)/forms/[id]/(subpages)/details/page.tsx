@@ -8,7 +8,7 @@ export default function FormDetailsPage() {
   const formId = Number(params.id);
 
   return (
-    <div className="h-[calc(100vh-4rem)]">
+    <div className="h-[calc(100vh-4rem)] flex-1">
       <FormDetailView formId={formId} />
     </div>
   );

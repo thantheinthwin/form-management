@@ -303,4 +303,53 @@ router.post("/:id/assign", isAdmin, async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/forms/:id/responses - Get all responses for a form (admin only)
+router.get("/:id/responses", isAdmin, async (req: Request, res: Response) => {
+  try {
+    const formId = req.params.id;
+    // Validate form ID
+    if (isNaN(Number(formId))) {
+      res.status(400).json({ message: "Invalid form ID" });
+      return;
+    }
+
+    // Check if form exists
+    const [formCheck] = await pool.query(
+      "SELECT id FROM forms WHERE id = ?",
+      [formId]
+    );
+
+    if (!Array.isArray(formCheck) || formCheck.length === 0) {
+      res.status(404).json({ message: "Form not found" });
+      return;
+    }
+
+    // Get all assignments and responses for this form
+    const [responses] = await pool.query(
+      `SELECT 
+        ufa.id as assignment_id,
+        ufa.user_id,
+        u.email,
+        ufa.status,
+        r.submitted_at,
+        r.answers as response_data
+      FROM user_form_assignments ufa
+      LEFT JOIN users u ON ufa.user_id = u.id
+      LEFT JOIN responses r ON ufa.user_id = r.user_id AND ufa.form_id = r.form_id
+      WHERE ufa.form_id = ?
+      ORDER BY r.submitted_at DESC`,
+      [formId]
+    );
+
+    res.status(200).json({
+      formId,
+      responses: responses
+    });
+
+  } catch (error) {
+    console.error("Error fetching form responses:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
 export default router;

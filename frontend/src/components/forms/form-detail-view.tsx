@@ -17,6 +17,7 @@ import {
 import { formsApi } from '@/lib/api/forms';
 import { toast } from 'sonner';
 import { FormDetailSidebar } from './form-detail-sidebar';
+import { useRouter } from 'next/navigation';
 
 interface FormField {
   id: number;
@@ -43,6 +44,8 @@ export function FormDetailView({ formId }: FormDetailsProps) {
   const [loading, setLoading] = useState(true);
   const [assignees, setAssignees] = useState<Assignee[]>([]);
 
+  const router = useRouter();
+
   useEffect(() => {
     const loadFormDetails = async () => {
       try {
@@ -51,11 +54,9 @@ export function FormDetailView({ formId }: FormDetailsProps) {
         console.log('form data', data);
         setFormData(data);
         
-        // For this example, let's assume getResponses returns assignees data as well
-        // In a real implementation, you might need a separate API call
         const responseData = await formsApi.getResponses(formId);
         console.log('response data', responseData);
-        setAssignees(responseData?.assignees || []);
+        setAssignees(responseData?.responses || []);
       } catch (error) {
         toast.error('Failed to load form details');
         console.error(error);
@@ -88,11 +89,8 @@ export function FormDetailView({ formId }: FormDetailsProps) {
 
   return (
     <div className="flex h-full">
-      {/* Sidebar */}
-      <FormDetailSidebar formId={formId} />
-
       {/* Main content */}
-      <div className="flex-1 p-6">
+      <div className="p-6 flex-1">
         <div className="space-y-6">
           {/* Form Fields Card */}
           <Card className="shadow-sm">
@@ -142,7 +140,9 @@ export function FormDetailView({ formId }: FormDetailsProps) {
           <Card className="shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
               <CardTitle className="text-xl">Assignee</CardTitle>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => {
+                router.push(`/forms/${formId}/responses`);
+              }}>
                 Assign Users
               </Button>
             </CardHeader>
@@ -153,7 +153,7 @@ export function FormDetailView({ formId }: FormDetailsProps) {
                     <div key={index} className="flex justify-between items-center border-b pb-3">
                       <div className="flex items-center space-x-2">
                         <UserCircle className="h-5 w-5 text-muted-foreground" />
-                        <span className="font-medium">{assignee.name}</span>
+                        <span>{assignee.email}</span>
                       </div>
                       <div className="flex items-center text-sm">
                         {assignee.status === 'completed' ? (

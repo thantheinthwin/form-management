@@ -12,7 +12,7 @@ export default function Home() {
   }
 
   if (session) {
-    redirect("/dashboard");
+    redirect("/forms");
   }
 
   redirect("/login");

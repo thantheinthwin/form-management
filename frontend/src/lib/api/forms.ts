@@ -88,8 +88,14 @@ export const formsApi = {
 
   // Form Responses
   submitResponse: (formId: number, responses: FormResponse[]) =>
-    api.post(`/responses/${formId}/submit`, { responses }).then((res) => res.data),
+    api.post(`/responses/${formId}`, { responses }).then((res) => res.data),
+
+  getResponse: (formId: number, userId: number) =>
+    api.get(`/responses/${formId}/${userId}`).then((res) => res.data),
 
   getResponses: (formId: number) =>
-    api.get(`/responses/${formId}`).then((res) => res.data),
+    api.get(`/forms/${formId}/responses`).then((res) => res.data),
+    
+  getUserSubmissions: (userId: number) =>
+    api.get(`/responses/${userId}`).then((res) => res.data),
 }; 

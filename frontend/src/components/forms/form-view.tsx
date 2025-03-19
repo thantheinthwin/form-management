@@ -55,15 +55,18 @@ type FormData = {
 const createDynamicSchema = (questions: Question[]) => {
   const shape: Record<string, any> = {};
   
-  questions.forEach((question) => {
-    const baseSchema = question.required ? z.string().min(1, 'This field is required') : z.string().optional();
+  questions.forEach((question, index) => {
+    const stringSchema = question.required ? z.string().min(1, 'This field is required') : z.string().optional();
+    const booleanSchema = question.required ? z.boolean() : z.boolean().optional();
     
     if (question.type === 'yes_no') {
-      shape[`question_${question.id}`] = baseSchema;
-    } else if (question.type === 'multiple_choice' || question.type === 'checkbox') {
-      shape[`question_${question.id}`] = z.array(z.string()).min(question.required ? 1 : 0);
+      shape[`question_${index}`] = booleanSchema;
+    } else if (question.type === 'multiple_choice') {
+      shape[`question_${index}`] = stringSchema;
+    } else if (question.type === 'checkbox') {
+      shape[`question_${index}`] = z.array(z.string()).min(question.required ? 1 : 0);
     } else {
-      shape[`question_${question.id}`] = baseSchema;
+      shape[`question_${index}`] = stringSchema;
     }
   });
 
@@ -74,23 +77,34 @@ interface FormViewProps {
   formData: FormData;
   onSubmit: (data: any) => void;
   userRole: 'user' | 'admin';
+  isCompleted?: boolean;
+  defaultValues?: Record<string, any>;
 }
 
-export function FormView({ formData, onSubmit, userRole }: FormViewProps) {
+export function FormView({ formData, onSubmit, userRole, isCompleted = false, defaultValues }: FormViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const schema = createDynamicSchema(formData.questions);
   const isAdmin = userRole === 'admin';
+  const isDisabled = isAdmin || isCompleted;
   
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: formData.questions.reduce((acc, question) => {
-      if (question.type === 'multiple_choice' || question.type === 'checkbox') {
-        acc[`question_${question.id}`] = [];
+  // Merge the generated default values with any provided values
+  const initialValues = {
+    ...formData.questions.reduce((acc, question, index) => {
+      if (question.type === 'checkbox') {
+        acc[`question_${index}`] = [];
+      } else if (question.type === 'yes_no') {
+        acc[`question_${index}`] = false;
       } else {
-        acc[`question_${question.id}`] = '';
+        acc[`question_${index}`] = '';
       }
       return acc;
     }, {} as Record<string, any>),
+    ...(defaultValues || {})
+  };
+  
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: initialValues,
   });
 
   const handleSubmit = async (data: any) => {
@@ -111,6 +125,11 @@ export function FormView({ formData, onSubmit, userRole }: FormViewProps) {
           {isAdmin && (
             <p className="text-sm bg-amber-100 p-2 rounded text-amber-800">
               Admin view: All fields are disabled
+            </p>
+          )}
+          {isCompleted && !isAdmin && (
+            <p className="text-sm bg-green-100 p-2 rounded text-green-800">
+              You have already submitted this form. Your responses are displayed below.
             </p>
           )}
           <CardTitle>{formData.title}</CardTitle>
@@ -139,13 +158,13 @@ export function FormView({ formData, onSubmit, userRole }: FormViewProps) {
                       <FormControl>
                         <div className="w-full">
                         {question.type === 'text' && (
-                          <Textarea {...field} disabled={isAdmin} />
+                          <Textarea {...field} disabled={isDisabled} />
                         )}
                         {question.type === 'multiple_choice' && (
                           <Select
                             onValueChange={field.onChange}
                             value={field.value || ""}
-                            disabled={isAdmin}
+                            disabled={isDisabled}
                           >
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select an option" />
@@ -160,24 +179,27 @@ export function FormView({ formData, onSubmit, userRole }: FormViewProps) {
                           </Select>
                         )}
                         {question.type === 'yes_no' && (
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value || ""}
-                            disabled={isAdmin}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select Yes or No" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Yes">Yes</SelectItem>
-                              <SelectItem value="No">No</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-4">
+                            <RadioGroup
+                              onValueChange={(value) => field.onChange(value === 'true')}
+                              value={field.value?.toString()}
+                              disabled={isDisabled}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="true" id={`yes-${index}`} />
+                                <FormLabel htmlFor={`yes-${index}`} className="cursor-pointer">Yes</FormLabel>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="false" id={`no-${index}`} />
+                                <FormLabel htmlFor={`no-${index}`} className="cursor-pointer">No</FormLabel>
+                              </div>
+                            </RadioGroup>
+                          </div>
                         )}
                         {question.type === 'checkbox' && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="outline" className="w-full justify-between font-normal" disabled={isAdmin}>
+                              <Button variant="outline" className="w-full justify-between font-normal" disabled={isDisabled}>
                                 {field.value?.length > 0 
                                   ? `Selected: ${field.value.join(', ')}` 
                                   : "Select options"}
@@ -215,9 +237,9 @@ export function FormView({ formData, onSubmit, userRole }: FormViewProps) {
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isSubmitting || isAdmin}
+                disabled={isSubmitting || isDisabled}
               >
-                {isSubmitting ? 'Submitting...' : isAdmin ? 'View Only' : 'Submit Form'}
+                {isSubmitting ? 'Submitting...' : isAdmin ? 'View Only' : isCompleted ? 'Already Submitted' : 'Submit Form'}
               </Button>
             </form>
           </Form>
