@@ -110,8 +110,8 @@ export function FormDetailView({ formId }: FormDetailsProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {formData.questions && formData.questions.map((field: FormField) => (
-                  <div key={field.id} className="flex justify-between border-b pb-3">
+                {formData.questions && formData.questions.map((field: FormField, index: number) => (
+                  <div key={index} className="flex justify-between border-b pb-3">
                     <div className="font-medium">{field.text}</div>
                     <div className="text-muted-foreground">{getFieldTypeName(field.type)}</div>
                   </div>
